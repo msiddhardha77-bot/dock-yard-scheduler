@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Appointments{% endblock %}
+{% block content %}
+<div class="page-heading">
+	<div>
+		<div class="eyebrow">Scheduling</div>
+		<h1>Appointments</h1>
+		<p>Filter, review and manage dock appointments.</p>
+	</div>
+	<a class="btn btn-primary" href="{{ url_for('appointments.create') }}">
+		<i class="bi bi-plus-lg" aria-hidden="true"></i> New appointment
+	</a>
+</div>
+
+<form class="filter-bar" method="get">
+	<div class="search-field">
+		<label class="visually-hidden" for="appointment-search">Search this page of appointments</label>
+		<div class="input-icon">
+			<i class="bi bi-search" aria-hidden="true"></i>
+			<input id="appointment-search" class="form-control" type="search" placeholder="Search this page…" autocomplete="off">
+		</div>
+	</div>
+	<select class="form-select" name="status" aria-label="Filter by status" style="max-width:180px">
+		<option value="">All statuses</option>
+		{% for status in ['REQUESTED','SCHEDULED','REJECTED','CHECKED_IN','AT_DOCK','IN_SERVICE','COMPLETED','DEPARTED','CANCELLED','NO_SHOW'] %}
+		<option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status.replace('_', ' ').title() }}</option>
+		{% endfor %}
+	</select>
+	<select class="form-select" name="direction" aria-label="Filter by direction" style="max-width:180px">
+		<option value="">Inbound &amp; outbound</option>
+		{% for direction in ['INBOUND','OUTBOUND'] %}
+		<option value="{{ direction }}" {% if selected_direction == direction %}selected{% endif %}>{{ direction.title() }}</option>
+		{% endfor %}
+	</select>
+	<select class="form-select" name="facility_id" aria-label="Filter by facility" style="max-width:180px">
+		<option value="">All facilities</option>
+		{% for facility in facilities %}
+		<option value="{{ facility.id }}" {% if selected_facility == facility.id %}selected{% endif %}>{{ facility.code }}</option>
+		{% endfor %}
+	</select>
+	<button class="btn btn-outline-secondary" type="submit">
+		<i class="bi bi-funnel" aria-hidden="true"></i> Filter
+	</button>
+	<span class="filter-note">Search applies to the current page.</span>
+</form>
+
+<div class="table-responsive">
+	<table class="table table-hover align-middle">
+		<thead>
+			<tr>
+				<th>Appointment</th>
+				<th>Carrier / vehicle</th>
+				<th>Load</th>
+				<th>Facility</th>
+				<th>Dock &amp; time window</th>
+				<th>Status</th>
+				<th class="text-end">Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for appointment in appointments.items %}
+			<tr data-appointment-row data-search="{{ appointment.reference }} {{ appointment.shipment.reference }} {{ appointment.shipment.vehicle.carrier.code }} {{ appointment.shipment.vehicle.registration }} {{ appointment.facility.code }} {{ appointment.status }} {{ appointment.shipment.direction }}">
+				<td>
+					<a href="{{ url_for('appointments.detail', appointment_id=appointment.id) }}" class="fw-semibold">
+						{{ appointment.reference }}
+					</a>
+					<div class="muted-note">{{ appointment.shipment.reference }}</div>
+				</td>
+				<td>
+					<strong>{{ appointment.shipment.vehicle.carrier.code }}</strong>
+					<div class="muted-note">{{ appointment.shipment.vehicle.registration }} · {{ appointment.shipment.vehicle.vehicle_type }}</div>
+				</td>
+				<td>
+					{% if appointment.shipment.direction == 'INBOUND' %}
+					<span class="direction-pill direction-inbound"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Inbound</span>
+					{% else %}
+					<span class="direction-pill direction-outbound"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Outbound</span>
+					{% endif %}
+					<div class="muted-note">{{ appointment.shipment.weight_kg }} kg</div>
+				</td>
+				<td>{{ appointment.facility.code }}</td>
+				<td>
+					{% set active_reservations = appointment.dock_reservations|selectattr('status', 'equalto', 'ACTIVE')|list %}
+					{% if active_reservations %}
+					<strong>{{ active_reservations[0].dock.code }}</strong>
+					{% else %}
+					<span class="muted-note">Not allocated</span>
+					{% endif %}
+					<div class="muted-note">
+						{{ appointment.scheduled_start or appointment.requested_start }}
+						{% if appointment.scheduled_end %} – {{ appointment.scheduled_end }}{% else %} – {{ appointment.requested_end }}{% endif %}
+					</div>
+				</td>
+				<td>
+					{% set st = appointment.status|lower|replace('_', '-') %}
+					<span class="badge-status badge-{{ st }}">{{ appointment.status.replace('_', ' ').title() }}</span>
+				</td>
+				<td class="text-end">
+					{% if appointment.status in ['REQUESTED','SCHEDULED'] %}
+					<form method="post" action="{{ url_for('appointments.cancel', appointment_id=appointment.id) }}" class="d-inline">
+						<button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Cancel {{ appointment.reference }}">Cancel</button>
+					</form>
+					{% else %}
+					<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('appointments.detail', appointment_id=appointment.id) }}">View</a>
+					{% endif %}
+				</td>
+			</tr>
+			{% else %}
+			<tr>
+				<td colspan="7">
+					<div class="empty-state">
+						<i class="bi bi-calendar-x"></i>
+						No appointments found for the selected filters.
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+			<tr id="appointment-search-empty" hidden>
+				<td colspan="7"><div class="empty-state"><i class="bi bi-search"></i>No appointments on this page match your search.</div></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div class="pagination-bar">
+	<span class="muted-note">
+		Showing {{ appointments.first or 0 }}–{{ appointments.last or 0 }} of {{ appointments.total }} appointments
+	</span>
+	<nav aria-label="Appointment pages" class="d-flex gap-2">
+		{% if appointments.has_prev %}
+		<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('appointments.list_appointments', page=appointments.prev_num, status=selected_status, direction=selected_direction, facility_id=selected_facility) }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</a>
+		{% else %}
+		<span class="btn btn-sm btn-outline-secondary disabled" aria-disabled="true"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</span>
+		{% endif %}
+		<span class="page-indicator">Page {{ appointments.page }} of {{ appointments.pages or 1 }}</span>
+		{% if appointments.has_next %}
+		<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('appointments.list_appointments', page=appointments.next_num, status=selected_status, direction=selected_direction, facility_id=selected_facility) }}">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+		{% else %}
+		<span class="btn btn-sm btn-outline-secondary disabled" aria-disabled="true">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+		{% endif %}
+	</nav>
+</div>
+{% endblock %}

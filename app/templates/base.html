@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="color-scheme" content="light">
+	<title>{% block title %}Dock Yard Scheduler{% endblock %} | Yardline</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+	{% block head %}{% endblock %}
+</head>
+<body>
+	<div class="app-shell">
+		<aside class="app-sidebar" id="app-sidebar" aria-label="Primary navigation">
+			<a class="brand-lockup" href="{{ url_for('dashboard.index') }}">
+				<span class="brand-mark" aria-hidden="true"><i class="bi bi-boxes"></i></span>
+				<span>
+					<strong>Yardline</strong>
+					<small>Dock operations</small>
+				</span>
+			</a>
+			<div class="sidebar-label">Workspace</div>
+			<nav class="nav flex-column sidebar-nav">
+				<a class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+					<i class="bi bi-grid-1x2" aria-hidden="true"></i><span>Overview</span>
+				</a>
+				<a class="nav-link {% if request.endpoint and request.endpoint.startswith('appointments.') %}active{% endif %}" href="{{ url_for('appointments.list_appointments') }}">
+					<i class="bi bi-calendar3" aria-hidden="true"></i><span>Appointments</span>
+				</a>
+				<a class="nav-link {% if request.endpoint and request.endpoint.startswith('checkins.') %}active{% endif %}" href="{{ url_for('checkins.index') }}">
+					<i class="bi bi-truck" aria-hidden="true"></i><span>Gate management</span>
+				</a>
+				<a class="nav-link {% if request.endpoint and request.endpoint.startswith('exceptions.') %}active{% endif %}" href="{{ url_for('exceptions.index') }}">
+					<i class="bi bi-exclamation-diamond" aria-hidden="true"></i><span>Exceptions</span>
+				</a>
+				<a class="nav-link {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}" href="{{ url_for('reports.index') }}">
+					<i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Reports</span>
+				</a>
+				<a class="nav-link {% if request.endpoint and request.endpoint.startswith('masters.') %}active{% endif %}" href="{{ url_for('masters.index') }}">
+					<i class="bi bi-buildings" aria-hidden="true"></i><span>Master data</span>
+				</a>
+			</nav>
+			<div class="sidebar-foot">
+				<span class="status-pulse"></span>
+				<span>Operations online</span>
+			</div>
+		</aside>
+
+		<button class="sidebar-scrim" id="sidebar-scrim" type="button" aria-label="Close navigation" hidden></button>
+
+		<div class="app-main">
+			<header class="topbar">
+				<button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-controls="app-sidebar" aria-expanded="false">
+					<i class="bi bi-list" aria-hidden="true"></i>
+				</button>
+				<div class="topbar-context">
+					<span class="topbar-kicker">Dock Yard Scheduling</span>
+					<span class="topbar-divider">/</span>
+					<span>{{ request.endpoint|replace('.', ' ')|replace('_', ' ')|title if request.endpoint else 'Workspace' }}</span>
+				</div>
+				<div class="topbar-date">
+					<i class="bi bi-clock" aria-hidden="true"></i>
+					<span>{{ now().strftime('%a, %b %d') if now is defined else 'Operations' }}</span>
+				</div>
+			</header>
+
+			<main class="page-content" id="main-content">
+				{% with messages = get_flashed_messages(with_categories=true) %}
+					{% for category, message in messages %}
+					<div class="alert alert-{{ 'danger' if category in ['danger','error'] else category }} alert-dismissible fade show" role="alert" aria-live="polite">
+						<i class="bi {% if category in ['danger','error'] %}bi-exclamation-circle{% elif category == 'success' %}bi-check-circle{% else %}bi-info-circle{% endif %}" aria-hidden="true"></i>
+						<span>{{ message }}</span>
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss alert"></button>
+					</div>
+					{% endfor %}
+				{% endwith %}
+				{% block content %}{% endblock %}
+			</main>
+
+			<footer class="app-footer">
+				<span>Yardline · Dock operations</span>
+				<span>Scheduling workspace</span>
+			</footer>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+	<script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+	{% block scripts %}{% endblock %}
+</body>
+</html>

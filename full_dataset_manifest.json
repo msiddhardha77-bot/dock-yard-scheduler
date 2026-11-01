@@ -1,0 +1,109 @@
+{
+  "actual_counts": {
+    "anomaly_labels": 20000,
+    "appointment_timelines": 20000,
+    "appointments": 20000,
+    "carriers": 20,
+    "check_in_events": 1,
+    "dock_reservations": 19948,
+    "docks": 100,
+    "drivers": 0,
+    "facilities": 10,
+    "gate_visits": 0,
+    "ground_truth_records": 20000,
+    "handling_requirements": 20000,
+    "labor_assignments": 19948,
+    "labor_shifts": 20,
+    "lifecycle_events": 100000,
+    "operational_exceptions": 0,
+    "scheduling_decisions": 20000,
+    "shipments": 20000,
+    "simulation_runs": 1,
+    "vehicles": 60,
+    "yard_occupancy": 0,
+    "yard_slot_reservations": 19948,
+    "yard_slots": 100,
+    "yard_zones": 0
+  },
+  "anomaly_distribution": {
+    "BASELINE": 19995,
+    "CHECK_IN_BEFORE_APPOINTMENT_DATE": 1,
+    "DOCK_CAPACITY_EXCEEDED": 1,
+    "INCOMPATIBLE_LOAD_ASSIGNMENT": 1,
+    "LABOR_UNAVAILABLE": 1,
+    "NO_SHOW_NOT_RECORDED": 1
+  },
+  "appointment_status_counts": {
+    "REJECTED": 52,
+    "SCHEDULED": 19948
+  },
+  "carrier_shipment_distribution": {
+    "S20261022F-CAR-001": 970,
+    "S20261022F-CAR-002": 1026,
+    "S20261022F-CAR-003": 995,
+    "S20261022F-CAR-004": 1013,
+    "S20261022F-CAR-005": 1032,
+    "S20261022F-CAR-006": 1042,
+    "S20261022F-CAR-007": 950,
+    "S20261022F-CAR-008": 1015,
+    "S20261022F-CAR-009": 1021,
+    "S20261022F-CAR-010": 974,
+    "S20261022F-CAR-011": 996,
+    "S20261022F-CAR-012": 1073,
+    "S20261022F-CAR-013": 979,
+    "S20261022F-CAR-014": 987,
+    "S20261022F-CAR-015": 955,
+    "S20261022F-CAR-016": 1008,
+    "S20261022F-CAR-017": 959,
+    "S20261022F-CAR-018": 994,
+    "S20261022F-CAR-019": 1004,
+    "S20261022F-CAR-020": 1007
+  },
+  "database_path": "D:\\dock-yard-scheduler\\full_dataset.db",
+  "database_size_bytes": 34816000,
+  "database_size_mib": 33.203,
+  "dataset": "full_dataset.db",
+  "exception_distribution": {},
+  "facility_appointment_distribution": {
+    "FAC-001": 2200,
+    "FAC-002": 2160,
+    "FAC-003": 2100,
+    "FAC-004": 2060,
+    "FAC-005": 2000,
+    "FAC-006": 1980,
+    "FAC-007": 1940,
+    "FAC-008": 1900,
+    "FAC-009": 1860,
+    "FAC-010": 1800
+  },
+  "generation_duration_seconds": 344.016,
+  "handling_distribution": {
+    "both": 0,
+    "hazardous": 1000,
+    "refrigerated": 2000
+  },
+  "horizon_days": 60,
+  "mode": "full",
+  "seed": 20261022,
+  "sha256": "acf36dce8cd0e3789778a03ff4bd14a85dc5665d51ecabe9a29f971d2818a258",
+  "synthetic": true,
+  "target": {
+    "appointments": 20000,
+    "carriers": 20,
+    "docks": 100,
+    "facilities": 10,
+    "lifecycle_events": 100000,
+    "vehicles": 60
+  },
+  "validation_failed_checks": [
+    "dock_capacity_with_documented_anomaly",
+    "labor_capacity_with_isolated_documented_anomaly"
+  ],
+  "validation_passed": false,
+  "validation_summary": "full_dataset_validation_summary.json",
+  "vehicle_type_shipment_distribution": {
+    "TRAILER": 3978,
+    "TRUCK": 9961,
+    "VAN": 6061
+  }
+}

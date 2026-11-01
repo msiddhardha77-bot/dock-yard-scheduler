@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-heading">
+	<div>
+		<div class="eyebrow">Analysis</div>
+		<h1>Reports</h1>
+		<p>Scheduling outcomes, utilization and timeline metrics.</p>
+	</div>
+	<div class="d-flex gap-2">
+		<a class="btn btn-outline-primary" href="{{ url_for('reports.simulation') }}">
+			<i class="bi bi-play-circle" aria-hidden="true"></i> Simulate
+		</a>
+		<a class="btn btn-primary" href="{{ url_for('reports.appointments_csv') }}">
+			<i class="bi bi-download" aria-hidden="true"></i> Export CSV
+		</a>
+	</div>
+</div>
+
+<section class="chart-panel mb-4">
+	<h2 class="chart-heading">Scheduling decisions</h2>
+	<p class="chart-subtitle">Acceptance and rejection outcomes recorded by the scheduler</p>
+	<div class="chart-wrap chart-wrap-short">
+		<canvas id="decision-chart" role="img" aria-label="Accepted and rejected scheduling decisions"></canvas>
+	</div>
+	<script type="application/json" id="decision-chart-data">{{ {"labels": ["Accepted", "Rejected"], "values": [evaluation.accepted_decisions, evaluation.rejected_decisions]}|tojson }}</script>
+</section>
+
+<div class="row g-4">
+	<div class="col-md-4">
+		<section class="panel p-3">
+			<h2 class="chart-heading mb-3">Operations</h2>
+			<table class="table table-sm mb-0">
+				<tbody>
+					{% for key, value in metrics.items() %}
+					<tr>
+						<th scope="row" class="text-secondary fw-normal">{{ key.replace('_', ' ')|title }}</th>
+						<td class="text-end fw-semibold">{{ value }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</section>
+	</div>
+	<div class="col-md-4">
+		<section class="panel p-3">
+			<h2 class="chart-heading mb-3">Scheduling decisions</h2>
+			<table class="table table-sm mb-0">
+				<tbody>
+					{% for key, value in evaluation.items() %}
+					<tr>
+						<th scope="row" class="text-secondary fw-normal">{{ key.replace('_', ' ')|title }}</th>
+						<td class="text-end fw-semibold">{{ value }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</section>
+	</div>
+	<div class="col-md-4">
+		<section class="panel p-3">
+			<h2 class="chart-heading mb-3">Timeline measurements</h2>
+			<table class="table table-sm mb-0">
+				<tbody>
+					{% for key, value in timeline.items() %}
+					<tr>
+						<th scope="row" class="text-secondary fw-normal">{{ key.replace('_', ' ')|title }}</th>
+						<td class="text-end fw-semibold">{{ value if value is not none else 'N/A' }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</section>
+	</div>
+</div>
+{% endblock %}

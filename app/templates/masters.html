@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Dock & Yard{% endblock %}
+{% block content %}
+<div class="page-heading">
+	<div>
+		<div class="eyebrow">Resource management</div>
+		<h1>Dock &amp; Yard</h1>
+		<p>Facility resource inventory, configured capacity and planned labor coverage.</p>
+	</div>
+</div>
+
+{% if facilities %}
+<div class="row g-3 mb-4">
+	{% for facility in facilities %}
+	<div class="col-md-6 col-xl-4">
+		<section class="resource-card">
+			<div class="resource-title">
+				<i class="bi bi-buildings" aria-hidden="true"></i>
+				<div><h2>{{ facility.code }} <span class="text-secondary fw-normal">· {{ facility.name }}</span></h2></div>
+			</div>
+			<div class="row g-3">
+				<div class="col-4 resource-stat">Docks<strong>{{ facility.docks|length }}</strong></div>
+				<div class="col-4 resource-stat">Yard slots<strong>{{ facility.yard_slots|length }}</strong></div>
+				<div class="col-4 resource-stat">Yard capacity<strong>{{ facility.yard_capacity }}</strong></div>
+			</div>
+			<div class="resource-summary-foot">
+				<span class="status-text {% if facility.active %}is-enabled{% else %}is-disabled{% endif %}">
+					<i class="bi {% if facility.active %}bi-check-circle{% else %}bi-pause-circle{% endif %}" aria-hidden="true"></i>
+					{{ 'Enabled' if facility.active else 'Inactive' }}
+				</span>
+				<span class="muted-note">{{ facility.operating_start }} – {{ facility.operating_end }}</span>
+			</div>
+		</section>
+	</div>
+	{% endfor %}
+</div>
+
+{% for facility in facilities %}
+<section class="panel p-4 mb-4">
+	<div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+		<div>
+			<h2 class="chart-heading">{{ facility.code }} resource inventory</h2>
+			<p class="chart-subtitle mb-0">Configured resource status. Enabled indicates the resource is available for scheduling, not its live reservation state.</p>
+		</div>
+		<span class="badge-status {% if facility.active %}badge-completed{% else %}badge-cancelled{% endif %}">{{ 'Facility active' if facility.active else 'Facility inactive' }}</span>
+	</div>
+
+	<div class="row g-4">
+		<div class="col-lg-6">
+			<h3 class="resource-section-heading"><i class="bi bi-door-open" aria-hidden="true"></i> Docks</h3>
+			<div class="table-responsive">
+				<table class="table table-sm">
+					<thead><tr><th>Dock</th><th>Type</th><th>Directions</th><th>Resource status</th></tr></thead>
+					<tbody>
+						{% for dock in facility.docks|sort(attribute='code') %}
+						<tr>
+							<td class="fw-semibold">{{ dock.code }}</td>
+							<td>{{ dock.dock_type.replace('_', ' ').title() }}</td>
+							<td class="text-secondary">
+								{% if dock.supports_inbound and dock.supports_outbound %}Inbound · Outbound
+								{% elif dock.supports_inbound %}Inbound
+								{% elif dock.supports_outbound %}Outbound
+								{% else %}No direction enabled{% endif %}
+							</td>
+							<td><span class="status-text {% if dock.active %}is-enabled{% else %}is-disabled{% endif %}">{{ 'Enabled' if dock.active else 'Inactive' }}</span></td>
+						</tr>
+						{% else %}
+						<tr><td colspan="4" class="text-secondary">No docks configured.</td></tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="col-lg-6">
+			<h3 class="resource-section-heading"><i class="bi bi-grid-3x3" aria-hidden="true"></i> Yard slots</h3>
+			<div class="table-responsive">
+				<table class="table table-sm">
+					<thead><tr><th>Slot</th><th>Type</th><th>Capacity</th><th>Resource status</th></tr></thead>
+					<tbody>
+						{% for slot in facility.yard_slots|sort(attribute='code') %}
+						<tr>
+							<td class="fw-semibold">{{ slot.code }}</td>
+							<td>{{ slot.slot_type.replace('_', ' ').title() }}</td>
+							<td>{{ slot.capacity }}</td>
+							<td><span class="status-text {% if slot.active %}is-enabled{% else %}is-disabled{% endif %}">{{ 'Enabled' if slot.active else 'Inactive' }}</span></td>
+						</tr>
+						{% else %}
+						<tr><td colspan="4" class="text-secondary">No yard slots configured.</td></tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="col-12">
+			<h3 class="resource-section-heading"><i class="bi bi-people" aria-hidden="true"></i> Planned labor shifts</h3>
+			<div class="table-responsive">
+				<table class="table table-sm">
+					<thead><tr><th>Shift</th><th>Hours</th><th>Planned workers</th><th>Effective dates</th></tr></thead>
+					<tbody>
+						{% for shift in facility.labor_shifts|sort(attribute='start_time') %}
+						<tr><td class="fw-semibold">{{ shift.name }}</td><td>{{ shift.start_time }} – {{ shift.end_time }}</td><td>{{ shift.workers }}</td><td class="text-secondary">Recurring daily schedule</td></tr>
+						{% else %}
+						<tr><td colspan="4" class="text-secondary">No labor shifts configured.</td></tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			<p class="muted-note mt-2 mb-0">Worker counts represent planned shift capacity. This view does not report actual attendance or current reservations.</p>
+		</div>
+	</div>
+</section>
+{% endfor %}
+{% else %}
+<div class="panel empty-state"><i class="bi bi-buildings"></i>No facilities found.</div>
+{% endif %}
+{% endblock %}

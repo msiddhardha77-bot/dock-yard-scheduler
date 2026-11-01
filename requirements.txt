@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+SQLAlchemy
+PyMySQL
+python-dotenv
+pandas
+numpy
+Faker
+pytest
+pytest-cov
+

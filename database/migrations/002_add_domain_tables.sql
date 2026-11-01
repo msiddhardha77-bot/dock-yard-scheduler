@@ -1,0 +1,3 @@
+-- Additive domain tables (yard_slots, handling_requirements, check_in_events) are
+-- created by SQLAlchemy metadata via `flask init-db` or Flask-Migrate.
+-- This migration marker documents the version without dropping or rewriting data.

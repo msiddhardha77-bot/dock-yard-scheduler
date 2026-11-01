@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Appointment simulation{% endblock %}
+{% block content %}
+<div class="page-heading">
+	<div>
+		<div class="eyebrow">Planning tools</div>
+		<h1>Appointment simulation</h1>
+		<p>Explore projected scheduling outcomes using a reproducible seed.</p>
+	</div>
+	<a class="btn btn-outline-secondary" href="{{ url_for('reports.index') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to reports</a>
+</div>
+
+<form class="filter-bar" method="get">
+	<div>
+		<label class="form-label" for="seed">Simulation seed</label>
+		<input id="seed" class="form-control" type="number" name="seed" value="{{ result.seed }}" aria-label="Simulation seed">
+	</div>
+	<button class="btn btn-primary" type="submit"><i class="bi bi-play-fill" aria-hidden="true"></i> Run simulation</button>
+</form>
+
+<div class="row g-3 mb-4">
+	{% for label, value, icon in [
+		('Appointments', result.appointment_count, 'bi-calendar3'),
+		('Scheduled', result.scheduled_count, 'bi-calendar-check'),
+		('Rejected', result.rejected_count, 'bi-calendar-x'),
+		('Projected late', result.projected_late_count, 'bi-clock-history')
+	] %}
+	<div class="col-6 col-xl-3">
+		<div class="metric-card">
+			<div class="metric-label"><i class="bi {{ icon }}" aria-hidden="true"></i>{{ label }}</div>
+			<strong class="metric-value">{{ value }}</strong>
+			<div class="metric-footnote">Simulation seed {{ result.seed }}</div>
+		</div>
+	</div>
+	{% endfor %}
+</div>
+
+<div class="row g-4">
+	<div class="col-lg-7">
+		<section class="panel p-4 h-100">
+			<h2 class="chart-heading mb-3">Projected operating measures</h2>
+			<div class="table-responsive">
+				<table class="table">
+					<tbody>
+						<tr><th scope="row">Projected service minutes</th><td class="text-end fw-semibold">{{ result.projected_service_minutes }}</td></tr>
+						<tr><th scope="row">Average projected service minutes</th><td class="text-end fw-semibold">{{ result.average_projected_service_minutes if result.average_projected_service_minutes is not none else 'N/A' }}</td></tr>
+						<tr><th scope="row">Within requested window</th><td class="text-end fw-semibold">{{ result.within_window_count }}</td></tr>
+						<tr><th scope="row">Projected on-time rate</th><td class="text-end fw-semibold">{{ result.projected_on_time_rate_percent if result.projected_on_time_rate_percent is not none else 'N/A' }}{% if result.projected_on_time_rate_percent is not none %}%{% endif %}</td></tr>
+						<tr><th scope="row">Open exceptions</th><td class="text-end fw-semibold">{{ result.open_exception_count }}</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+	<div class="col-lg-5">
+		<section class="panel p-4 h-100">
+			<h2 class="chart-heading">Rejection reasons</h2>
+			<p class="chart-subtitle">Projected outcomes by scheduler reason code</p>
+			{% if result.rejection_reasons %}
+			<div class="table-responsive">
+				<table class="table">
+					<thead><tr><th>Reason code</th><th class="text-end">Count</th></tr></thead>
+					<tbody>{% for reason, count in result.rejection_reasons|dictsort %}<tr><td><code class="reason-code">{{ reason }}</code></td><td class="text-end fw-semibold">{{ count }}</td></tr>{% endfor %}</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="empty-state"><i class="bi bi-check-circle"></i>No rejected decisions in this dataset.</div>
+			{% endif %}
+		</section>
+	</div>
+</div>
+{% endblock %}

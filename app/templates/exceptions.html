@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Exceptions{% endblock %}
+{% block content %}
+<div class="page-heading">
+	<div>
+		<div class="eyebrow">Operations</div>
+		<h1>Exceptions</h1>
+		<p>Review and resolve operational exceptions.</p>
+	</div>
+	<form method="post" action="{{ url_for('exceptions.detect_no_shows') }}">
+		<button class="btn btn-outline-primary" type="submit">
+			<i class="bi bi-search" aria-hidden="true"></i> Detect overdue no-shows
+		</button>
+	</form>
+</div>
+
+<div class="table-responsive">
+	<table class="table table-hover align-middle">
+		<thead>
+			<tr>
+				<th>Appointment</th>
+				<th>Severity</th>
+				<th>Reason code</th>
+				<th>Status</th>
+				<th>Description</th>
+				<th>Detection time</th>
+				<th class="text-end">Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for exception in exceptions %}
+			<tr>
+				<td>
+					{% if exception.appointment_id %}
+					<a href="{{ url_for('appointments.detail', appointment_id=exception.appointment_id) }}">#{{ exception.appointment_id }}</a>
+					{% else %}
+					<span class="muted-note">Facility-level</span>
+					{% endif %}
+				</td>
+				<td>
+					{% if exception.severity in ['HIGH', 'CRITICAL'] %}
+					<span class="badge-status badge-rejected">{{ exception.severity }}</span>
+					{% elif exception.severity == 'MEDIUM' %}
+					<span class="badge-status badge-in-service">{{ exception.severity }}</span>
+					{% else %}
+					<span class="badge-status badge-scheduled">{{ exception.severity }}</span>
+					{% endif %}
+				</td>
+				<td><code class="reason-code">{{ exception.cause_code }}</code></td>
+				<td>
+					{% if exception.status == 'OPEN' %}
+					<span class="badge-status badge-open">Open</span>
+					{% else %}
+					<span class="badge-status badge-resolved">{{ exception.status.title() }}</span>
+					{% endif %}
+				</td>
+				<td class="text-secondary exception-description">{{ exception.description }}</td>
+				<td class="text-secondary small text-nowrap">{{ exception.detected_at }}</td>
+				<td class="text-end">
+					{% if exception.status == 'OPEN' %}
+					<form method="post" action="{{ url_for('exceptions.resolve', exception_id=exception.id) }}">
+						<button class="btn btn-sm btn-success" type="submit">
+							<i class="bi bi-check2"></i> Resolve
+						</button>
+					</form>
+					{% else %}
+					<span class="text-muted">—</span>
+					{% endif %}
+				</td>
+			</tr>
+			{% else %}
+			<tr>
+				<td colspan="7">
+					<div class="empty-state">
+						<i class="bi bi-check-circle"></i>
+						No exceptions found.
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

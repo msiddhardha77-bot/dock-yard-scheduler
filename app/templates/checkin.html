@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Gate management{% endblock %}
+{% block content %}
+<div class="page-heading">
+	<div>
+		<div class="eyebrow">Operations</div>
+		<h1>Gate and service operations</h1>
+		<p>Check-in, dock assignment, service progression and checkout.</p>
+	</div>
+</div>
+
+<div class="table-responsive">
+	<table class="table table-hover align-middle">
+		<thead>
+			<tr>
+				<th>Appointment</th>
+				<th>Status</th>
+				<th>Scheduled window</th>
+				<th>Progress</th>
+				<th>Actual work</th>
+				<th class="text-end">Next action</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for appointment in appointments %}
+			{% set visit = gate_visits.get(appointment.id) %}
+			{% set timeline = timelines.get(appointment.id) %}
+			{% set st = appointment.status|lower|replace('_', '-') %}
+			<tr>
+				<td>
+					<a href="{{ url_for('appointments.detail', appointment_id=appointment.id) }}" class="fw-semibold">
+						{{ appointment.reference }}
+					</a>
+				</td>
+				<td>
+					<span class="badge-status badge-{{ st }}">{{ display_status(appointment.status) }}</span>
+				</td>
+				<td class="text-secondary small">
+					{{ appointment.scheduled_start }}<br>
+					<span class="text-muted">to {{ appointment.scheduled_end }}</span>
+				</td>
+				<td>
+					<ol class="mb-0 ps-3 small text-secondary">
+						<li>Gate check-in: {% if visit and visit.check_in_at %}<span class="text-success">{{ visit.check_in_at }}</span>{% else %}Pending{% endif %}</li>
+						<li>Dock arrival: {% if timeline and timeline.dock_arrival_at %}<span class="text-success">{{ timeline.dock_arrival_at }}</span>{% else %}Pending{% endif %}</li>
+						<li>Service start: {% if timeline and timeline.service_start_at %}<span class="text-success">{{ timeline.service_start_at }}</span>{% else %}Pending{% endif %}</li>
+						<li>Service completed: {% if timeline and timeline.service_end_at %}<span class="text-success">{{ timeline.service_end_at }}</span>{% else %}Pending{% endif %}</li>
+						<li>Gate checkout: {% if visit and visit.check_out_at %}<span class="text-success">{{ visit.check_out_at }}</span>{% else %}Pending{% endif %}</li>
+					</ol>
+				</td>
+				<td>
+					{% if appointment.id in work_durations %}
+					<span class="fw-semibold">{{ '%.0f'|format(work_durations[appointment.id]) }} min</span>
+					{% else %}
+					<span class="text-muted">—</span>
+					{% endif %}
+				</td>
+				<td class="text-end">
+					{% if appointment.status == 'SCHEDULED' %}
+					<form method="post" action="{{ url_for('checkins.checkin', appointment_id=appointment.id) }}">
+						<button class="btn btn-sm btn-primary" type="submit">
+							<i class="bi bi-box-arrow-in-right"></i> Check in
+						</button>
+					</form>
+					{% elif appointment.status in ['CHECKED_IN','AT_DOCK'] %}
+					<form method="post" action="{{ url_for('checkins.complete', appointment_id=appointment.id) }}">
+						<button class="btn btn-sm btn-outline-primary" type="submit">
+							{% if appointment.status == 'CHECKED_IN' %}
+							<i class="bi bi-door-open"></i> Assign dock
+							{% else %}
+							<i class="bi bi-play-fill"></i> Start service
+							{% endif %}
+						</button>
+					</form>
+					{% elif appointment.status == 'IN_SERVICE' %}
+					<form method="post" action="{{ url_for('checkins.complete', appointment_id=appointment.id) }}">
+						<button class="btn btn-sm btn-success" type="submit">
+							<i class="bi bi-check2"></i> Complete service
+						</button>
+					</form>
+					{% elif appointment.status == 'COMPLETED' %}
+					<form method="post" action="{{ url_for('checkins.checkout', appointment_id=appointment.id) }}">
+						<button class="btn btn-sm btn-success" type="submit">
+							<i class="bi bi-box-arrow-right"></i> Check out
+						</button>
+					</form>
+					{% else %}
+					<span class="text-muted">—</span>
+					{% endif %}
+				</td>
+			</tr>
+			{% else %}
+			<tr>
+				<td colspan="6">
+					<div class="empty-state">
+						<i class="bi bi-truck"></i>
+						No appointments awaiting gate or service action.
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+<p class="text-muted mt-3 small">
+	<i class="bi bi-info-circle"></i>
+	Service Completed means loading or unloading is finished. Check Out records gate departure and releases remaining resource holds.
+</p>
+{% endblock %}

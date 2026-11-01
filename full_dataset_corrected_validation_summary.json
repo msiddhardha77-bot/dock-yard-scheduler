@@ -1,0 +1,1084 @@
+{
+  "acceptance": {
+    "failed_check_count": 0,
+    "failed_checks": [],
+    "passed": true
+  },
+  "actual_table_counts": {
+    "anomaly_labels": 20000,
+    "appointment_timelines": 20000,
+    "appointments": 20000,
+    "carriers": 20,
+    "check_in_events": 1,
+    "dock_reservations": 19948,
+    "docks": 100,
+    "drivers": 0,
+    "facilities": 10,
+    "gate_visits": 0,
+    "ground_truth_records": 20000,
+    "handling_requirements": 20000,
+    "labor_assignments": 19948,
+    "labor_shifts": 21,
+    "lifecycle_events": 100000,
+    "operational_exceptions": 0,
+    "scheduling_decisions": 20000,
+    "shipments": 20000,
+    "simulation_runs": 1,
+    "vehicles": 60,
+    "yard_occupancy": 0,
+    "yard_slot_reservations": 19948,
+    "yard_slots": 100,
+    "yard_zones": 0
+  },
+  "anomaly_distribution": {
+    "BASELINE": 19995,
+    "CHECK_IN_BEFORE_APPOINTMENT_DATE": 1,
+    "DOCK_CAPACITY_EXCEEDED": 1,
+    "INCOMPATIBLE_LOAD_ASSIGNMENT": 1,
+    "LABOR_UNAVAILABLE": 1,
+    "NO_SHOW_NOT_RECORDED": 1
+  },
+  "appointment_status_counts": {
+    "REJECTED": 52,
+    "SCHEDULED": 19948
+  },
+  "carrier_shipment_distribution": {
+    "S20261022F-CAR-001": 970,
+    "S20261022F-CAR-002": 1026,
+    "S20261022F-CAR-003": 995,
+    "S20261022F-CAR-004": 1013,
+    "S20261022F-CAR-005": 1032,
+    "S20261022F-CAR-006": 1042,
+    "S20261022F-CAR-007": 950,
+    "S20261022F-CAR-008": 1015,
+    "S20261022F-CAR-009": 1021,
+    "S20261022F-CAR-010": 974,
+    "S20261022F-CAR-011": 996,
+    "S20261022F-CAR-012": 1073,
+    "S20261022F-CAR-013": 979,
+    "S20261022F-CAR-014": 987,
+    "S20261022F-CAR-015": 955,
+    "S20261022F-CAR-016": 1008,
+    "S20261022F-CAR-017": 959,
+    "S20261022F-CAR-018": 994,
+    "S20261022F-CAR-019": 1004,
+    "S20261022F-CAR-020": 1007
+  },
+  "checks": {
+    "all_carriers_and_facilities_distributed": {
+      "details": {
+        "carrier_appointment_sum": 20000,
+        "carrier_count": 20,
+        "facility_appointment_sum": 20000,
+        "facility_count": 10
+      },
+      "passed": true
+    },
+    "all_five_ground_truth_evidence": {
+      "details": {
+        "CHECK_IN_BEFORE_APPOINTMENT_DATE": true,
+        "DOCK_CAPACITY_EXCEEDED": true,
+        "INCOMPATIBLE_LOAD_ASSIGNMENT": true,
+        "LABOR_UNAVAILABLE": true,
+        "NO_SHOW_NOT_RECORDED": true
+      },
+      "passed": true
+    },
+    "appointment_and_decision_reconciliation": {
+      "details": {
+        "decisions": {
+          "ACCEPTED": 19948,
+          "REJECTED": 52
+        },
+        "rejection_reasons": {
+          "DOCK_UNAVAILABLE": 52
+        },
+        "statuses": {
+          "REJECTED": 52,
+          "SCHEDULED": 19948
+        }
+      },
+      "passed": true
+    },
+    "dock_utilization_metrics": {
+      "details": {
+        "active_dock_count": 100,
+        "available_dock_minutes": 5280000.0,
+        "dock_utilization": 25.08,
+        "occupied_dock_minutes": 1324170.0,
+        "period_end": "2026-10-20T00:00:00+00:00",
+        "period_start": "2026-08-26T00:00:00+00:00"
+      },
+      "passed": true
+    },
+    "entity_and_resource_relationships": {
+      "details": {
+        "appointment_shipment_facility": 0,
+        "rejected_with_active_resource": 0,
+        "scheduled_without_exactly_one_active_dock": 0,
+        "scheduled_without_exactly_one_active_yard": 0,
+        "scheduled_without_labor_assignment": 0,
+        "shipment_carrier_vehicle_or_capacity": 0
+      },
+      "passed": true
+    },
+    "exact_anomaly_label_counts": {
+      "details": {
+        "actual": {
+          "BASELINE": 19995,
+          "CHECK_IN_BEFORE_APPOINTMENT_DATE": 1,
+          "DOCK_CAPACITY_EXCEEDED": 1,
+          "INCOMPATIBLE_LOAD_ASSIGNMENT": 1,
+          "LABOR_UNAVAILABLE": 1,
+          "NO_SHOW_NOT_RECORDED": 1
+        },
+        "expected": {
+          "BASELINE": 19995,
+          "CHECK_IN_BEFORE_APPOINTMENT_DATE": 1,
+          "DOCK_CAPACITY_EXCEEDED": 1,
+          "INCOMPATIBLE_LOAD_ASSIGNMENT": 1,
+          "LABOR_UNAVAILABLE": 1,
+          "NO_SHOW_NOT_RECORDED": 1
+        }
+      },
+      "passed": true
+    },
+    "exact_entity_counts": {
+      "details": {
+        "anomaly_labels": {
+          "actual": 20000,
+          "expected": 20000,
+          "passed": true
+        },
+        "appointment_timelines": {
+          "actual": 20000,
+          "expected": 20000,
+          "passed": true
+        },
+        "appointments": {
+          "actual": 20000,
+          "expected": 20000,
+          "passed": true
+        },
+        "carriers": {
+          "actual": 20,
+          "expected": 20,
+          "passed": true
+        },
+        "check_in_events": {
+          "actual": 1,
+          "expected": 1,
+          "passed": true
+        },
+        "dock_reservations": {
+          "actual": 19948,
+          "expected": 19948,
+          "passed": true
+        },
+        "docks": {
+          "actual": 100,
+          "expected": 100,
+          "passed": true
+        },
+        "facilities": {
+          "actual": 10,
+          "expected": 10,
+          "passed": true
+        },
+        "ground_truth_records": {
+          "actual": 20000,
+          "expected": 20000,
+          "passed": true
+        },
+        "handling_requirements": {
+          "actual": 20000,
+          "expected": 20000,
+          "passed": true
+        },
+        "labor_assignments": {
+          "actual": 19948,
+          "expected": 19948,
+          "passed": true
+        },
+        "labor_shifts": {
+          "actual": 21,
+          "expected": 21,
+          "passed": true
+        },
+        "lifecycle_events": {
+          "actual": 100000,
+          "expected": 100000,
+          "passed": true
+        },
+        "operational_exceptions": {
+          "actual": 0,
+          "expected": 0,
+          "passed": true
+        },
+        "scheduling_decisions": {
+          "actual": 20000,
+          "expected": 20000,
+          "passed": true
+        },
+        "shipments": {
+          "actual": 20000,
+          "expected": 20000,
+          "passed": true
+        },
+        "simulation_runs": {
+          "actual": 1,
+          "expected": 1,
+          "passed": true
+        },
+        "vehicles": {
+          "actual": 60,
+          "expected": 60,
+          "passed": true
+        },
+        "yard_slot_reservations": {
+          "actual": 19948,
+          "expected": 19948,
+          "passed": true
+        },
+        "yard_slots": {
+          "actual": 100,
+          "expected": 100,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    "exactly_one_intentional_dock_overlap": {
+      "details": {
+        "capacity_summary": {
+          "assignment_violations": [],
+          "handling_violations": [
+            1
+          ],
+          "intentional_conflict_appointment_ids": [
+            2,
+            13
+          ],
+          "intentional_evidence_valid": true,
+          "over_capacity_appointment_ids": [
+            2,
+            13
+          ],
+          "peak_load_by_dock": {
+            "1": 1,
+            "2": 2,
+            "3": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1,
+            "10": 1,
+            "11": 1,
+            "12": 1,
+            "13": 1,
+            "17": 1,
+            "18": 1,
+            "19": 1,
+            "20": 1,
+            "21": 1,
+            "22": 1,
+            "23": 1,
+            "27": 1,
+            "28": 1,
+            "29": 1,
+            "30": 1,
+            "31": 1,
+            "32": 1,
+            "33": 1,
+            "37": 1,
+            "38": 1,
+            "39": 1,
+            "40": 1,
+            "41": 1,
+            "42": 1,
+            "43": 1,
+            "47": 1,
+            "48": 1,
+            "49": 1,
+            "50": 1,
+            "51": 1,
+            "52": 1,
+            "53": 1,
+            "57": 1,
+            "58": 1,
+            "59": 1,
+            "60": 1,
+            "61": 1,
+            "62": 1,
+            "63": 1,
+            "67": 1,
+            "68": 1,
+            "69": 1,
+            "70": 1,
+            "71": 1,
+            "72": 1,
+            "73": 1,
+            "77": 1,
+            "78": 1,
+            "79": 1,
+            "80": 1,
+            "81": 1,
+            "82": 1,
+            "83": 1,
+            "87": 1,
+            "88": 1,
+            "89": 1,
+            "90": 1,
+            "91": 1,
+            "92": 1,
+            "93": 1,
+            "94": 1,
+            "97": 1,
+            "98": 1,
+            "99": 1,
+            "100": 1
+          },
+          "unintended_over_capacity_appointment_ids": []
+        },
+        "expected_pair": [
+          2,
+          13
+        ],
+        "overlap_pairs": [
+          [
+            2,
+            13
+          ]
+        ]
+      },
+      "passed": true
+    },
+    "ground_truth_label_match": {
+      "details": {
+        "mismatch_count": 0,
+        "sample_ids": []
+      },
+      "passed": true
+    },
+    "ground_truth_row_coverage": {
+      "details": {
+        "labels": 20000,
+        "truth_records": 20000
+      },
+      "passed": true
+    },
+    "handling_resources_compatible_except_labeled_anomaly": {
+      "details": {
+        "distribution": {
+          "both": 0,
+          "hazardous": 1000,
+          "refrigerated": 2000
+        },
+        "incompatibility": {
+          "appointment_ids": [
+            1
+          ],
+          "dock_assignment_violations": [],
+          "intentional_anomaly_appointment_id": 1,
+          "intentional_evidence_valid": true
+        }
+      },
+      "passed": true
+    },
+    "incompatible_load_isolated_from_dock_capacity": {
+      "details": {
+        "appointment_ids": [
+          1
+        ],
+        "dock_assignment_violations": [],
+        "intentional_anomaly_appointment_id": 1,
+        "intentional_evidence_valid": true
+      },
+      "passed": true
+    },
+    "labor_capacity_anomaly_isolated": {
+      "details": {
+        "assignment_violations": [],
+        "assignments_on_anomaly_shift": 1,
+        "intentional_anomaly_appointment_id": 6,
+        "intentional_evidence_valid": true,
+        "over_capacity_appointment_ids": [
+          6
+        ],
+        "peak_load_by_shift": {
+          "1": 8,
+          "2": 8,
+          "3": 8,
+          "4": 9,
+          "5": 9,
+          "6": 8,
+          "7": 8,
+          "8": 8,
+          "9": 8,
+          "10": 9,
+          "11": 8,
+          "12": 8,
+          "13": 7,
+          "14": 8,
+          "15": 8,
+          "16": 8,
+          "17": 9,
+          "18": 8,
+          "19": 8,
+          "20": 8,
+          "21": 2
+        },
+        "unintended_over_capacity_appointment_ids": []
+      },
+      "passed": true
+    },
+    "lifecycle_history_and_event_count": {
+      "details": {
+        "appointments_with_events": 20000,
+        "events": 100000,
+        "invalid_history_count": 0,
+        "sample_ids": []
+      },
+      "passed": true
+    },
+    "metrics_reconcile": {
+      "details": {
+        "decisions": {
+          "acceptance_rate": 99.74,
+          "accepted_decisions": 19948,
+          "active_reservation_count": 19948,
+          "appointment_count": 20000,
+          "cancelled_count": 0,
+          "completed_count": 0,
+          "decision_count": 20000,
+          "exception_count": 0,
+          "no_show_count": 0,
+          "open_exception_count": 0,
+          "rejected_decisions": 52,
+          "rejection_rate": 0.26
+        },
+        "planned_labor": {
+          "available_worker_hours": 108721.5,
+          "labor_shift_count": 21,
+          "labor_utilization_percent": 23.77,
+          "planned_worker_hours": 25844.0,
+          "scheduled_appointment_count": 19948,
+          "unassigned_appointment_count": 0
+        }
+      },
+      "passed": true
+    },
+    "operational_exception_fields": {
+      "details": {
+        "invalid_count": 0
+      },
+      "passed": true
+    },
+    "operational_exception_reconciliation": {
+      "details": {
+        "causes": {},
+        "count": 0,
+        "explanation": "No baseline arrival crosses the detector threshold; injected resource anomalies are labels, and missing no-show is intentionally undetected."
+      },
+      "passed": true
+    },
+    "primary_key_uniqueness": {
+      "details": {
+        "anomaly_labels": {
+          "distinct_primary_keys": 20000,
+          "passed": true,
+          "rows": 20000
+        },
+        "appointment_timelines": {
+          "distinct_primary_keys": 20000,
+          "passed": true,
+          "rows": 20000
+        },
+        "appointments": {
+          "distinct_primary_keys": 20000,
+          "passed": true,
+          "rows": 20000
+        },
+        "carriers": {
+          "distinct_primary_keys": 20,
+          "passed": true,
+          "rows": 20
+        },
+        "check_in_events": {
+          "distinct_primary_keys": 1,
+          "passed": true,
+          "rows": 1
+        },
+        "dock_reservations": {
+          "distinct_primary_keys": 19948,
+          "passed": true,
+          "rows": 19948
+        },
+        "docks": {
+          "distinct_primary_keys": 100,
+          "passed": true,
+          "rows": 100
+        },
+        "drivers": {
+          "distinct_primary_keys": 0,
+          "passed": true,
+          "rows": 0
+        },
+        "facilities": {
+          "distinct_primary_keys": 10,
+          "passed": true,
+          "rows": 10
+        },
+        "gate_visits": {
+          "distinct_primary_keys": 0,
+          "passed": true,
+          "rows": 0
+        },
+        "ground_truth_records": {
+          "distinct_primary_keys": 20000,
+          "passed": true,
+          "rows": 20000
+        },
+        "handling_requirements": {
+          "distinct_primary_keys": 20000,
+          "passed": true,
+          "rows": 20000
+        },
+        "labor_assignments": {
+          "distinct_primary_keys": 19948,
+          "passed": true,
+          "rows": 19948
+        },
+        "labor_shifts": {
+          "distinct_primary_keys": 21,
+          "passed": true,
+          "rows": 21
+        },
+        "lifecycle_events": {
+          "distinct_primary_keys": 100000,
+          "passed": true,
+          "rows": 100000
+        },
+        "operational_exceptions": {
+          "distinct_primary_keys": 0,
+          "passed": true,
+          "rows": 0
+        },
+        "scheduling_decisions": {
+          "distinct_primary_keys": 20000,
+          "passed": true,
+          "rows": 20000
+        },
+        "shipments": {
+          "distinct_primary_keys": 20000,
+          "passed": true,
+          "rows": 20000
+        },
+        "simulation_runs": {
+          "distinct_primary_keys": 1,
+          "passed": true,
+          "rows": 1
+        },
+        "vehicles": {
+          "distinct_primary_keys": 60,
+          "passed": true,
+          "rows": 60
+        },
+        "yard_occupancy": {
+          "distinct_primary_keys": 0,
+          "passed": true,
+          "rows": 0
+        },
+        "yard_slot_reservations": {
+          "distinct_primary_keys": 19948,
+          "passed": true,
+          "rows": 19948
+        },
+        "yard_slots": {
+          "distinct_primary_keys": 100,
+          "passed": true,
+          "rows": 100
+        },
+        "yard_zones": {
+          "distinct_primary_keys": 0,
+          "passed": true,
+          "rows": 0
+        }
+      },
+      "passed": true
+    },
+    "sqlite_foreign_key_integrity": {
+      "details": {
+        "sample": [],
+        "violations": 0
+      },
+      "passed": true
+    },
+    "sqlite_integrity_check": {
+      "details": {
+        "result": "ok"
+      },
+      "passed": true
+    },
+    "timeline_ordering_and_completeness": {
+      "details": {
+        "scheduled_missing_milestones": 0,
+        "timeline_rows": 20000,
+        "unordered_count": 0
+      },
+      "passed": true
+    },
+    "timeline_wait_and_occupancy_metrics": {
+      "details": {
+        "dock_occupied_minutes": 1325216.0,
+        "timeline_sample_size": 19948,
+        "wait_time_minutes": 10.0,
+        "yard_occupied_minutes": 1544644.0,
+        "yard_slot_reservation_count": 19948
+      },
+      "passed": true
+    },
+    "yard_capacity_and_compatibility": {
+      "details": {
+        "assignment_violations": [],
+        "facility_over_capacity_appointment_ids": [],
+        "peak_load_by_facility": {
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5,
+          "5": 5,
+          "6": 5,
+          "7": 5,
+          "8": 5,
+          "9": 5,
+          "10": 5
+        },
+        "peak_load_by_slot": {
+          "1": 3,
+          "7": 2,
+          "9": 2,
+          "11": 3,
+          "17": 2,
+          "19": 2,
+          "21": 3,
+          "27": 2,
+          "29": 2,
+          "31": 3,
+          "37": 2,
+          "39": 2,
+          "41": 3,
+          "47": 2,
+          "49": 2,
+          "51": 3,
+          "57": 2,
+          "59": 2,
+          "61": 3,
+          "67": 2,
+          "69": 2,
+          "71": 3,
+          "77": 2,
+          "79": 2,
+          "81": 3,
+          "87": 2,
+          "89": 2,
+          "91": 3,
+          "97": 2,
+          "99": 2
+        },
+        "slot_over_capacity_appointment_ids": []
+      },
+      "passed": true
+    }
+  },
+  "count_reconciliation": {
+    "anomaly_labels": {
+      "actual": 20000,
+      "expected": 20000,
+      "passed": true
+    },
+    "appointment_timelines": {
+      "actual": 20000,
+      "expected": 20000,
+      "passed": true
+    },
+    "appointments": {
+      "actual": 20000,
+      "expected": 20000,
+      "passed": true
+    },
+    "carriers": {
+      "actual": 20,
+      "expected": 20,
+      "passed": true
+    },
+    "check_in_events": {
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    "dock_reservations": {
+      "actual": 19948,
+      "expected": 19948,
+      "passed": true
+    },
+    "docks": {
+      "actual": 100,
+      "expected": 100,
+      "passed": true
+    },
+    "facilities": {
+      "actual": 10,
+      "expected": 10,
+      "passed": true
+    },
+    "ground_truth_records": {
+      "actual": 20000,
+      "expected": 20000,
+      "passed": true
+    },
+    "handling_requirements": {
+      "actual": 20000,
+      "expected": 20000,
+      "passed": true
+    },
+    "labor_assignments": {
+      "actual": 19948,
+      "expected": 19948,
+      "passed": true
+    },
+    "labor_shifts": {
+      "actual": 21,
+      "expected": 21,
+      "passed": true
+    },
+    "lifecycle_events": {
+      "actual": 100000,
+      "expected": 100000,
+      "passed": true
+    },
+    "operational_exceptions": {
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    "scheduling_decisions": {
+      "actual": 20000,
+      "expected": 20000,
+      "passed": true
+    },
+    "shipments": {
+      "actual": 20000,
+      "expected": 20000,
+      "passed": true
+    },
+    "simulation_runs": {
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    "vehicles": {
+      "actual": 60,
+      "expected": 60,
+      "passed": true
+    },
+    "yard_slot_reservations": {
+      "actual": 19948,
+      "expected": 19948,
+      "passed": true
+    },
+    "yard_slots": {
+      "actual": 100,
+      "expected": 100,
+      "passed": true
+    }
+  },
+  "database_path": "D:\\dock-yard-scheduler\\full_dataset_corrected.db",
+  "dataset": "full_dataset_corrected.db",
+  "decision_counts": {
+    "ACCEPTED": 19948,
+    "REJECTED": 52
+  },
+  "exception_distribution": {},
+  "expected_counts": {
+    "anomaly_labels": 20000,
+    "appointment_timelines": 20000,
+    "appointments": 20000,
+    "carriers": 20,
+    "check_in_events": 1,
+    "dock_reservations": 19948,
+    "docks": 100,
+    "facilities": 10,
+    "ground_truth_records": 20000,
+    "handling_requirements": 20000,
+    "labor_assignments": 19948,
+    "labor_shifts": 21,
+    "lifecycle_events": 100000,
+    "operational_exceptions": 0,
+    "scheduling_decisions": 20000,
+    "shipments": 20000,
+    "simulation_runs": 1,
+    "vehicles": 60,
+    "yard_slot_reservations": 19948,
+    "yard_slots": 100
+  },
+  "facility_appointment_distribution": {
+    "FAC-001": 2200,
+    "FAC-002": 2160,
+    "FAC-003": 2100,
+    "FAC-004": 2060,
+    "FAC-005": 2000,
+    "FAC-006": 1980,
+    "FAC-007": 1940,
+    "FAC-008": 1900,
+    "FAC-009": 1860,
+    "FAC-010": 1800
+  },
+  "generation": {
+    "database_size_bytes": 34816000,
+    "database_size_mib": 33.203,
+    "generation_duration_seconds": 349.101,
+    "horizon_days": 60,
+    "mode": "full",
+    "seed": 20261022,
+    "sha256": "2979787d6f9ec722a44f69773d4bd7b340e905e1db1e6567ebc13f11e9c0caea"
+  },
+  "handling_distribution": {
+    "both": 0,
+    "hazardous": 1000,
+    "refrigerated": 2000
+  },
+  "metrics": {
+    "appointment_decisions": {
+      "acceptance_rate": 99.74,
+      "accepted_decisions": 19948,
+      "active_reservation_count": 19948,
+      "appointment_count": 20000,
+      "cancelled_count": 0,
+      "completed_count": 0,
+      "decision_count": 20000,
+      "exception_count": 0,
+      "no_show_count": 0,
+      "open_exception_count": 0,
+      "rejected_decisions": 52,
+      "rejection_rate": 0.26
+    },
+    "dock_utilization": {
+      "active_dock_count": 100,
+      "available_dock_minutes": 5280000.0,
+      "dock_utilization": 25.08,
+      "occupied_dock_minutes": 1324170.0,
+      "period_end": "2026-10-20T00:00:00+00:00",
+      "period_start": "2026-08-26T00:00:00+00:00"
+    },
+    "planned_labor_utilization": {
+      "available_worker_hours": 108721.5,
+      "labor_shift_count": 21,
+      "labor_utilization_percent": 23.77,
+      "planned_worker_hours": 25844.0,
+      "scheduled_appointment_count": 19948,
+      "unassigned_appointment_count": 0
+    },
+    "timeline_wait_and_occupancy": {
+      "dock_occupied_minutes": 1325216.0,
+      "timeline_sample_size": 19948,
+      "wait_time_minutes": 10.0,
+      "yard_occupied_minutes": 1544644.0,
+      "yard_slot_reservation_count": 19948
+    }
+  },
+  "notes": [
+    "All dataset validation queries used a read-only SQLite connection.",
+    "Exactly one dock-overlap pair and one dedicated labor-capacity violation are intentional and ground-truth labeled.",
+    "The incompatible-load anomaly is assigned to an unoccupied general dock and does not create a dock overlap."
+  ],
+  "rejection_reason_counts": {
+    "DOCK_UNAVAILABLE": 52
+  },
+  "resource_capacity": {
+    "dock": {
+      "assignment_violations": [],
+      "handling_violations": [
+        1
+      ],
+      "intentional_conflict_appointment_ids": [
+        2,
+        13
+      ],
+      "intentional_evidence_valid": true,
+      "over_capacity_appointment_ids": [
+        2,
+        13
+      ],
+      "peak_load_by_dock": {
+        "1": 1,
+        "2": 2,
+        "3": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1,
+        "20": 1,
+        "21": 1,
+        "22": 1,
+        "23": 1,
+        "27": 1,
+        "28": 1,
+        "29": 1,
+        "30": 1,
+        "31": 1,
+        "32": 1,
+        "33": 1,
+        "37": 1,
+        "38": 1,
+        "39": 1,
+        "40": 1,
+        "41": 1,
+        "42": 1,
+        "43": 1,
+        "47": 1,
+        "48": 1,
+        "49": 1,
+        "50": 1,
+        "51": 1,
+        "52": 1,
+        "53": 1,
+        "57": 1,
+        "58": 1,
+        "59": 1,
+        "60": 1,
+        "61": 1,
+        "62": 1,
+        "63": 1,
+        "67": 1,
+        "68": 1,
+        "69": 1,
+        "70": 1,
+        "71": 1,
+        "72": 1,
+        "73": 1,
+        "77": 1,
+        "78": 1,
+        "79": 1,
+        "80": 1,
+        "81": 1,
+        "82": 1,
+        "83": 1,
+        "87": 1,
+        "88": 1,
+        "89": 1,
+        "90": 1,
+        "91": 1,
+        "92": 1,
+        "93": 1,
+        "94": 1,
+        "97": 1,
+        "98": 1,
+        "99": 1,
+        "100": 1
+      },
+      "unintended_over_capacity_appointment_ids": []
+    },
+    "incompatible_handling": {
+      "appointment_ids": [
+        1
+      ],
+      "dock_assignment_violations": [],
+      "intentional_anomaly_appointment_id": 1,
+      "intentional_evidence_valid": true
+    },
+    "labor": {
+      "assignment_violations": [],
+      "assignments_on_anomaly_shift": 1,
+      "intentional_anomaly_appointment_id": 6,
+      "intentional_evidence_valid": true,
+      "over_capacity_appointment_ids": [
+        6
+      ],
+      "peak_load_by_shift": {
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 9,
+        "5": 9,
+        "6": 8,
+        "7": 8,
+        "8": 8,
+        "9": 8,
+        "10": 9,
+        "11": 8,
+        "12": 8,
+        "13": 7,
+        "14": 8,
+        "15": 8,
+        "16": 8,
+        "17": 9,
+        "18": 8,
+        "19": 8,
+        "20": 8,
+        "21": 2
+      },
+      "unintended_over_capacity_appointment_ids": []
+    },
+    "yard": {
+      "assignment_violations": [],
+      "facility_over_capacity_appointment_ids": [],
+      "peak_load_by_facility": {
+        "1": 5,
+        "2": 5,
+        "3": 5,
+        "4": 5,
+        "5": 5,
+        "6": 5,
+        "7": 5,
+        "8": 5,
+        "9": 5,
+        "10": 5
+      },
+      "peak_load_by_slot": {
+        "1": 3,
+        "7": 2,
+        "9": 2,
+        "11": 3,
+        "17": 2,
+        "19": 2,
+        "21": 3,
+        "27": 2,
+        "29": 2,
+        "31": 3,
+        "37": 2,
+        "39": 2,
+        "41": 3,
+        "47": 2,
+        "49": 2,
+        "51": 3,
+        "57": 2,
+        "59": 2,
+        "61": 3,
+        "67": 2,
+        "69": 2,
+        "71": 3,
+        "77": 2,
+        "79": 2,
+        "81": 3,
+        "87": 2,
+        "89": 2,
+        "91": 3,
+        "97": 2,
+        "99": 2
+      },
+      "slot_over_capacity_appointment_ids": []
+    }
+  },
+  "validated_at_utc": "2026-11-01T04:19:29.930372+00:00",
+  "vehicle_type_shipment_distribution": {
+    "TRAILER": 3978,
+    "TRUCK": 9961,
+    "VAN": 6061
+  }
+}

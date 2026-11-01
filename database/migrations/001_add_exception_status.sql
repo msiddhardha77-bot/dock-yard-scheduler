@@ -1,0 +1,3 @@
+-- Apply to an existing database created before exception status was introduced.
+-- MySQL: ALTER TABLE operational_exceptions ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'OPEN';
+-- SQLite: ALTER TABLE operational_exceptions ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'OPEN';
