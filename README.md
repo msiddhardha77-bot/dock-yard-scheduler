@@ -132,6 +132,31 @@ The validation package checks integrity, capacity, lifecycle/timeline rules,
 scenario outcomes, anomaly/ground-truth consistency, and reproducibility.
 Exports are produced by `scripts/export_data.py`.
 
+### Submission export artifacts
+
+The current operational export generated for submission review is in
+`submission_exports_2026-11-01/`. It was produced from a disposable copy of
+`full_dataset_corrected.db`, not by opening the operational database for
+writing. The directory contains 24 model CSV files, `ground_truth.json`,
+`source_manifest.json`, `validation_summary.json`, and the SQLite 3
+data-bearing seed dump `full_dataset_corrected_current_seed.sql`. The
+associated `export_validation.json` records that CSV counts match the export
+manifest, all exported primary keys are unique, all checked cross-file
+references resolve, and the SQL seed reproduces the same table counts.
+
+To generate an equivalent export safely, first copy the source database to a
+new disposable SQLite file, point `DATABASE_URL` at that copy, and run:
+
+```powershell
+python scripts/export_data.py --output D:/dock-yard-scheduler/submission_exports_YYYY-MM-DD --seed 20261022 --mode current-operational
+```
+
+The exporter writes CSV and JSON artifacts. `database/schema.sql` is the
+schema-only SQLite DDL export; the data-bearing SQL seed is a separate
+read-only SQLite dump generated for the submission artifact. Never point the
+exporter at the protected accepted database, because the existing exporter
+calls `db.create_all()` before reading models.
+
 ## Windows installation and setup
 
 From PowerShell:
@@ -262,3 +287,5 @@ environment.
 - [Testing](docs/test_plan.md)
 - [Requirements traceability](docs/requirements_traceability.md)
 - [Acceptance history](docs/acceptance_report.md)
+- [Event count reconciliation](validation/event_count_reconciliation_2026-11-01.md)
+- [Final submission checklist](FINAL_SUBMISSION_CHECKLIST.md)

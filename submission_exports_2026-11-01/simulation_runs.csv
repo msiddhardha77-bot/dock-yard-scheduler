@@ -1,0 +1,2 @@
+id,seed,mode,started_at,completed_at,manifest
+1,20261022,full,2026-08-25T06:00:00,2026-10-25T06:00:00,"{""horizon_days"": 60, ""yard_slots_per_facility"": 10, ""handling_requirement_per_shipment"": true}"

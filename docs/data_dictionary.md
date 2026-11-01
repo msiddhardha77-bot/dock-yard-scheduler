@@ -75,3 +75,311 @@ idempotency checks that pair in application code through `SimulationRun`.
 ground truth can describe more than one entity type. The current generator
 uses appointment-level ground truth and stores the corresponding issue type,
 label, and scenario evidence in `truth`.
+
+## Complete field-level reference
+
+The following field inventory is derived from the SQLAlchemy models in
+`app/models/masters.py`, `operations.py`, `domain.py`, `scheduling.py`, and
+`events.py`. `INTEGER`, `VARCHAR(n)`, `BOOLEAN`, `TIME`, `DATETIME`, `TEXT`,
+and `JSON` are logical SQLAlchemy types; the physical SQLite affinity or MySQL
+type may differ. Unless otherwise stated, timestamp values are UTC application
+timestamps. “None declared” means the model has no additional enum, unit, or
+check constraint for that field.
+
+### Master entities
+
+#### `facilities`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of docks, zones, slots, shifts, appointments, exceptions |
+| `code` | VARCHAR(20) | required; unique | none declared | business facility code |
+| `name` | VARCHAR(120) | required | none declared | display name |
+| `timezone` | VARCHAR(64) | required | IANA timezone string expected by utilization service; no SQL enum | facility-local operating schedule |
+| `operating_start` | TIME | required | default 06:00; same-day schedule in scheduler | operating-hours boundary |
+| `operating_end` | TIME | required | default 22:00; same-day schedule in scheduler | operating-hours boundary |
+| `yard_capacity` | INTEGER; appointments | required | `>= 0` | facility yard capacity |
+| `active` | BOOLEAN | required | default true | active dock/utilization scope |
+
+#### `docks`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of reservations |
+| `facility_id` | INTEGER | required; FK | existing `facilities.id` | N:1 facility |
+| `code` | VARCHAR(30) | required; unique with `facility_id` | facility-local dock code | N:1 facility |
+| `dock_type` | VARCHAR(30) | required | default `GENERAL`; compatibility service interprets handling types | dock capability |
+| `supports_inbound` | BOOLEAN | required | default true | direction compatibility |
+| `supports_outbound` | BOOLEAN | required | default true | direction compatibility |
+| `vehicle_types` | VARCHAR(255) | required | comma-separated supported vehicle types; default `VAN,TRUCK,TRAILER` | vehicle compatibility |
+| `active` | BOOLEAN | required | default true | allocation/utilization eligibility |
+
+#### `yard_zones`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | zone record |
+| `facility_id` | INTEGER | required; FK | existing facility | N:1 facility |
+| `code` | VARCHAR(30) | required; unique with facility | none declared | facility-local zone |
+| `capacity` | INTEGER; positions | required | none declared in model | zone capacity |
+
+#### `yard_slots`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of slot reservations |
+| `facility_id` | INTEGER | required; FK | existing facility | N:1 facility |
+| `code` | VARCHAR(40) | required; unique with facility | facility-local slot code | N:1 facility |
+| `capacity` | INTEGER; concurrent appointments | required | `> 0` check | slot capacity |
+| `slot_type` | VARCHAR(30) | required | default `GENERAL`; compatibility service matches handling | handling compatibility |
+| `active` | BOOLEAN | required | default true | allocation eligibility |
+
+#### `carriers`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of vehicles/drivers and shipment references |
+| `code` | VARCHAR(30) | required; unique | none declared | carrier business code |
+| `name` | VARCHAR(120) | required | none declared | display name |
+
+#### `drivers`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | driver record |
+| `carrier_id` | INTEGER | required; FK | existing carrier | N:1 carrier |
+| `name` | VARCHAR(120) | required | none declared | driver name |
+| `license_number` | VARCHAR(50) | required; unique | none declared | business identifier |
+
+#### `vehicles`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of shipment references |
+| `carrier_id` | INTEGER | required; FK | existing carrier | N:1 carrier |
+| `registration` | VARCHAR(30) | required; unique | none declared | vehicle business identifier |
+| `vehicle_type` | VARCHAR(30) | required | compatibility values generated as `VAN`, `TRUCK`, `TRAILER`; no SQL enum | vehicle/dock compatibility |
+| `capacity_kg` | INTEGER; kg | required | default 10,000; scheduler requires shipment weight not greater | payload capacity |
+
+#### `labor_shifts`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of labor assignments |
+| `facility_id` | INTEGER | required; FK | existing facility | N:1 facility |
+| `name` | VARCHAR(50) | required | none declared | shift name |
+| `start_time` | TIME | required | scheduler requires service interval to fit; overnight not supported | shift start |
+| `end_time` | TIME | required | scheduler requires service interval to fit; overnight not supported | shift end |
+| `workers` | INTEGER; workers | required | `>= 0` check | available labor capacity |
+
+### Transaction and operational entities
+
+#### `shipments`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of appointments and one handling requirement |
+| `reference` | VARCHAR(50) | required; unique | none declared | shipment business reference |
+| `facility_id` | INTEGER | required; FK | existing facility | N:1 facility |
+| `carrier_id` | INTEGER | required; FK | existing carrier | N:1 carrier |
+| `vehicle_id` | INTEGER | required; FK | existing vehicle; scheduler checks carrier match | N:1 vehicle |
+| `direction` | VARCHAR(10) | required | `INBOUND` or `OUTBOUND` SQL check | shipment direction |
+| `weight_kg` | INTEGER; kg | required | `>= 0` SQL check; scheduler checks vehicle capacity | derived/input load weight |
+
+#### `appointments`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | parent of operational/audit rows |
+| `reference` | VARCHAR(50) | required; unique | none declared | appointment business reference |
+| `shipment_id` | INTEGER | required; FK | existing shipment | N:1 shipment; shipment may have N appointments |
+| `facility_id` | INTEGER | required; FK | existing facility; must match shipment facility in scheduler | N:1 facility |
+| `requested_start` | DATETIME UTC | required; indexed | requested end must be later | requested time window |
+| `requested_end` | DATETIME UTC | required | `> requested_start` SQL check | requested time window |
+| `scheduled_start` | DATETIME UTC | optional | set on accepted allocation | derived allocation start |
+| `scheduled_end` | DATETIME UTC | optional | set on accepted allocation; after start | derived allocation end |
+| `duration_minutes` | INTEGER; minutes | required | `> 0` SQL check | requested service duration |
+| `status` | VARCHAR(20) | required; indexed | `REQUESTED`, `SCHEDULED`, `CHECKED_IN`, `AT_DOCK`, `IN_SERVICE`, `COMPLETED`, `DEPARTED`, `CANCELLED`, `REJECTED`, `NO_SHOW` | lifecycle state |
+| `created_at` | DATETIME UTC | required | application UTC default | request creation time |
+
+#### `handling_requirements`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | requirement record |
+| `shipment_id` | INTEGER | required; FK and unique | one row per shipment (`uselist=False`) | 1:1 shipment |
+| `refrigerated` | BOOLEAN | required | default false | handling compatibility |
+| `hazardous` | BOOLEAN | required | default false | handling compatibility |
+| `required_workers` | INTEGER; workers | required | `> 0` SQL check | labor allocation requirement |
+| `service_minutes` | INTEGER; minutes | required | `> 0` SQL check | service duration input |
+
+#### `labor_assignments` (bridge)
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | assignment record |
+| `shift_id` | INTEGER | required; FK/indexed | existing shift | N:1 labor shift |
+| `appointment_id` | INTEGER | required; FK/indexed; unique | one current assignment per appointment | N:1 appointment; bridge |
+| `workers` | INTEGER; workers | required | default 1; `> 0` SQL check | assigned labor quantity |
+
+#### `dock_reservations` (bridge/history)
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | reservation history |
+| `dock_id` | INTEGER | required; FK/indexed | existing dock | N:1 dock |
+| `appointment_id` | INTEGER | required; FK/indexed | existing appointment | N:1 appointment |
+| `start_at` | DATETIME UTC | required; indexed | end must be later | reserved interval |
+| `end_at` | DATETIME UTC | required | `> start_at` SQL check | reserved interval |
+| `status` | VARCHAR(20) | required; indexed | `ACTIVE`, `CANCELLED`, `COMPLETED` SQL check | active rows participate in overlap checks |
+
+#### `yard_slot_reservations` (bridge/history)
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | reservation history |
+| `yard_slot_id` | INTEGER | required; FK/indexed | existing slot | N:1 yard slot |
+| `appointment_id` | INTEGER | required; FK/indexed | existing appointment | N:1 appointment |
+| `start_at` | DATETIME UTC | required | end must be later | reserved interval |
+| `end_at` | DATETIME UTC | required | `> start_at` SQL check | reserved interval |
+| `status` | VARCHAR(20) | required | `ACTIVE`, `CANCELLED`, `COMPLETED` SQL check | active rows participate in capacity checks |
+
+#### `check_in_events`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | check-in attempt |
+| `event_reference` | VARCHAR(60) | required; unique | none declared | external event identifier |
+| `appointment_id` | INTEGER | required; FK/indexed | existing appointment | N:1 appointment |
+| `attempt_number` | INTEGER | required | default 1; `> 0`; unique with appointment | ordered attempts |
+| `attempted_at` | DATETIME UTC | required | application UTC default | attempt timestamp |
+| `outcome` | VARCHAR(30) | required | `ACCEPTED` or `REJECTED` SQL check | check-in outcome |
+| `reason_code` | VARCHAR(60) | optional | service reason code for rejected attempts | rejection explanation |
+
+#### `gate_visits`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | visit record |
+| `appointment_id` | INTEGER | required; FK and unique | one visit per appointment | optional 1:1 appointment |
+| `check_in_at` | DATETIME UTC | required | set on accepted check-in | visit start |
+| `check_out_at` | DATETIME UTC | optional | set on checkout after completion | visit end |
+
+#### `yard_occupancy`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | occupancy record |
+| `facility_id` | INTEGER | required; FK/indexed | existing facility | N:1 facility |
+| `appointment_id` | INTEGER | required; FK | existing appointment | N:1 appointment |
+| `entered_at` | DATETIME UTC | required | exit, when present, must be no earlier | occupancy interval |
+| `exited_at` | DATETIME UTC | optional | `>= entered_at` SQL check when present | occupancy interval end |
+
+#### `appointment_timelines`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | timeline record |
+| `appointment_id` | INTEGER | required; FK and unique | exactly one timeline per appointment | 1:1 appointment |
+| `actual_arrival_at` | DATETIME UTC | optional | populated at check-in | actual arrival |
+| `yard_entry_at` | DATETIME UTC | optional | populated at yard entry | yard milestone |
+| `dock_arrival_at` | DATETIME UTC | optional | populated at dock assignment | dock milestone |
+| `service_start_at` | DATETIME UTC | optional | populated at service start | service milestone |
+| `service_end_at` | DATETIME UTC | optional | populated at completion | service milestone |
+| `departure_at` | DATETIME UTC | optional | populated at checkout | departure/terminal timestamp |
+
+### Audit and evaluation entities
+
+#### `lifecycle_events`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer; append-only by application convention | event record |
+| `appointment_id` | INTEGER | required; FK/indexed | existing appointment | N:1 appointment |
+| `from_status` | VARCHAR(20) | optional | previous lifecycle state; null for initial request | lifecycle transition |
+| `to_status` | VARCHAR(20) | required | appointment status values | lifecycle transition |
+| `event_type` | VARCHAR(40) | required | application event types such as `REQUESTED`, `SCHEDULE_ATTEMPT`, `GATE_CHECK_IN`, `SERVICE_COMPLETE`, `GATE_CHECK_OUT` | event classification |
+| `event_time` | DATETIME UTC | required; indexed | lifecycle service enforces chronological ordering | event timestamp |
+| `notes` | TEXT | optional | free-form audit notes | event context |
+
+#### `operational_exceptions`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | exception record |
+| `appointment_id` | INTEGER | optional; FK/indexed | null allowed for facility-level exception | optional N:1 appointment |
+| `facility_id` | INTEGER | required; FK/indexed | existing facility | N:1 facility |
+| `severity` | VARCHAR(20) | required | detector/scheduler values such as `WARNING`; no SQL enum | exception severity |
+| `cause_code` | VARCHAR(50) | required | detector/scheduler codes including `LATE_ARRIVAL`, `NO_SHOW`, `PEAK_CONGESTION`, `INCOMPATIBLE_LOAD`, `LABOR_UNAVAILABLE`, `INVALID_SCHEDULING_DECISION` | exception cause |
+| `description` | TEXT | required | non-empty application description | exception explanation |
+| `detected_at` | DATETIME UTC | required | application UTC default | detection time |
+| `resolved_at` | DATETIME UTC | optional | set during resolution | resolution time |
+| `resolution_notes` | TEXT | optional | resolution explanation | resolution audit |
+| `status` | VARCHAR(20) | required; indexed | application values `OPEN` or `RESOLVED`; no SQL check | exception state |
+
+#### `scheduling_decisions`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | decision record |
+| `appointment_id` | INTEGER | required; FK/indexed | existing appointment | N:1 appointment |
+| `decision` | VARCHAR(20) | required | application values `ACCEPTED` or `REJECTED` | scheduling outcome |
+| `reason_code` | VARCHAR(60) | required | centralized scheduler reason codes | decision explanation |
+| `details` | JSON | required | default empty mapping; structured explanation | decision evidence |
+| `created_at` | DATETIME UTC | required | application UTC default | decision timestamp |
+
+#### `anomaly_labels`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | label record |
+| `appointment_id` | INTEGER | required; FK | existing appointment | N:1 appointment |
+| `label` | VARCHAR(50) | required | generated labels include `BASELINE` and the five documented anomaly labels | synthetic evaluation label |
+| `source` | VARCHAR(30) | required | default `synthetic_ground_truth` | label provenance |
+
+#### `ground_truth_records`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | truth record |
+| `entity_type` | VARCHAR(40) | required | application entity label; current generator uses `appointment` | generic evaluated entity |
+| `entity_id` | INTEGER | required | generic identifier; intentionally no FK | paired with entity type |
+| `truth` | JSON | required | structured issue type, label and evidence payload | evaluation evidence |
+
+#### `simulation_runs`
+
+| Field | Type / unit | Required / key | Allowed values and validation | Relationship |
+|---|---|---|---|---|
+| `id` | INTEGER | required; PK | surrogate integer | simulation/generation run |
+| `seed` | INTEGER; unitless | required | any integer accepted | deterministic input |
+| `mode` | VARCHAR(20) | required | generator modes `starter`, `medium`, `full`; no SQL enum | run profile |
+| `started_at` | DATETIME UTC | required | application UTC default | run start |
+| `completed_at` | DATETIME UTC | optional | null until complete | run completion |
+| `manifest` | JSON | optional | default empty mapping when model-created | run metadata |
+
+## Cardinality, optionality, and effective dates
+
+- A facility has many docks, zones, slots, shifts, appointments, and
+  exceptions; each of those rows has a required facility FK except an exception
+  appointment link, which is optional.
+- A carrier has many vehicles, drivers, and shipments. A vehicle and shipment
+  each reference one carrier; the scheduler validates that the shipment vehicle
+  belongs to the shipment carrier.
+- A shipment has many appointments and exactly zero or one
+  `handling_requirements` row because `shipment_id` is unique. The current
+  generated dataset uses one appointment per shipment.
+- An appointment has many lifecycle events, decisions, check-in attempts,
+  reservations and possible exceptions, and at most one timeline and one gate
+  visit because those tables have unique appointment constraints.
+- Labor assignments, dock reservations, and yard-slot reservations are bridge
+  entities between appointments and resources. Reservation rows are retained
+  when completed/cancelled; only active rows participate in allocation checks.
+- There are no generic master-data `effective_from`/`effective_to` columns in
+  the current models. Reservation, occupancy, requested-window, operating,
+  shift, timeline, detection, resolution, and event timestamps provide interval
+  or historical timing where applicable. This is a limitation, not an implied
+  effective-dating feature.
+- Lifecycle states are the ten values in the appointment status check. Normal
+  operational progression is `REQUESTED -> SCHEDULED -> CHECKED_IN -> AT_DOCK
+  -> IN_SERVICE -> COMPLETED -> DEPARTED`; rejection, cancellation, and
+  no-show paths are controlled by the lifecycle service.

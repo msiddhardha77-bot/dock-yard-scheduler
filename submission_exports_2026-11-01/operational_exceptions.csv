@@ -1,0 +1,2 @@
+id,appointment_id,facility_id,severity,cause_code,description,detected_at,resolved_at,resolution_notes,status
+1,1,10,WARNING,LATE_ARRIVAL,Arrival was 96687 minutes late,2026-11-01T09:27:07.229630,2026-11-01T09:27:27.615550,Resolved by operations,RESOLVED
