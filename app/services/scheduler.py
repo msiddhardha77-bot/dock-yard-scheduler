@@ -17,6 +17,7 @@ from app.services.compatibility import (
     handling_yard_slot_type,
 )
 from app.services.reason_codes import explain
+from app.services.operational_exceptions import record_scheduling_exception
 from app.models.domain import HandlingRequirement, YardSlotReservation
 from sqlalchemy import text
 
@@ -40,7 +41,13 @@ def _mysql_unlock(name):
         db.session.execute(text("SELECT RELEASE_LOCK(:lock_name)"), {"lock_name": name})
 
 
-def schedule_appointment(appointment, commit=True, decision_time=None, record_lifecycle=True):
+def schedule_appointment(
+    appointment,
+    commit=True,
+    decision_time=None,
+    record_lifecycle=True,
+    record_operational_exception=True,
+):
     original_status = appointment.status
     if appointment.status not in {"REQUESTED", "REJECTED"}:
         return _reject(
@@ -50,6 +57,7 @@ def schedule_appointment(appointment, commit=True, decision_time=None, record_li
             decision_time,
             record_lifecycle=False,
             update_status=False,
+            record_operational_exception=record_operational_exception,
         )
     if original_status == "REJECTED":
         appointment.status = "REQUESTED"
@@ -65,22 +73,22 @@ def schedule_appointment(appointment, commit=True, decision_time=None, record_li
     facility = appointment.facility
     shipment = appointment.shipment
     if shipment.facility_id != appointment.facility_id:
-        return _reject(appointment, "SHIPMENT_FACILITY_MISMATCH", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "SHIPMENT_FACILITY_MISMATCH", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     if shipment.carrier_id != shipment.vehicle.carrier_id:
-        return _reject(appointment, "VEHICLE_CARRIER_MISMATCH", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "VEHICLE_CARRIER_MISMATCH", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     if shipment.direction not in {"INBOUND", "OUTBOUND"}:
-        return _reject(appointment, "INVALID_SHIPMENT_DIRECTION", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "INVALID_SHIPMENT_DIRECTION", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     if shipment.weight_kg < 0:
-        return _reject(appointment, "INVALID_SHIPMENT_WEIGHT", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "INVALID_SHIPMENT_WEIGHT", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     start = appointment.requested_start
     window_end = appointment.requested_end
     end = start + timedelta(minutes=appointment.duration_minutes)
     if window_end <= start or end > window_end:
-        return _reject(appointment, "TIME_WINDOW_CONFLICT", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "TIME_WINDOW_CONFLICT", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     if not _operating_hours(facility, start, end):
-        return _reject(appointment, "OUTSIDE_OPERATING_HOURS", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "OUTSIDE_OPERATING_HOURS", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     if shipment.weight_kg > shipment.vehicle.capacity_kg:
-        return _reject(appointment, "VEHICLE_CAPACITY_EXCEEDED", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "VEHICLE_CAPACITY_EXCEEDED", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     requirement = HandlingRequirement.query.filter_by(shipment_id=appointment.shipment_id).first()
     if requirement and (
         requirement.required_workers <= 0 or requirement.service_minutes <= 0
@@ -91,12 +99,13 @@ def schedule_appointment(appointment, commit=True, decision_time=None, record_li
             commit,
             decision_time,
             record_lifecycle,
+            record_operational_exception=record_operational_exception,
         )
     required_workers = requirement.required_workers if requirement else 1
     if commit and db.engine.dialect.name == "mysql":
         facility = Facility.query.filter_by(id=facility.id).with_for_update().one()
     if not yard_available(facility, start, end, exclude_appointment_id=appointment.id):
-        return _reject(appointment, "YARD_CAPACITY_EXCEEDED", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "YARD_CAPACITY_EXCEEDED", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     shift = available_labor_shift(
         facility,
         start,
@@ -105,7 +114,7 @@ def schedule_appointment(appointment, commit=True, decision_time=None, record_li
         exclude_appointment_id=appointment.id,
     )
     if shift is None:
-        return _reject(appointment, "LABOR_UNAVAILABLE", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "LABOR_UNAVAILABLE", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     slot_type = handling_yard_slot_type(requirement)
     yard_slot = available_yard_slot(
         facility,
@@ -115,7 +124,7 @@ def schedule_appointment(appointment, commit=True, decision_time=None, record_li
         exclude_appointment_id=appointment.id,
     )
     if yard_slot is None:
-        return _reject(appointment, "YARD_SLOT_UNAVAILABLE", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "YARD_SLOT_UNAVAILABLE", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
     eligible_docks = []
     for dock in sorted(facility.docks, key=lambda d: d.code):
         if not dock.active or not compatible(dock, appointment):
@@ -131,8 +140,9 @@ def schedule_appointment(appointment, commit=True, decision_time=None, record_li
                 commit,
                 decision_time,
                 record_lifecycle,
+                record_operational_exception=record_operational_exception,
             )
-        return _reject(appointment, "DOCK_INCOMPATIBLE", commit, decision_time, record_lifecycle)
+        return _reject(appointment, "DOCK_INCOMPATIBLE", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
 
     for dock in eligible_docks:
         # Lock the dock master row for the transaction. MySQL/InnoDB then
@@ -199,7 +209,7 @@ def schedule_appointment(appointment, commit=True, decision_time=None, record_li
             # continues to use the row lock and releases at its batch commit.
             if lock_name:
                 _mysql_unlock(lock_name)
-    return _reject(appointment, "DOCK_UNAVAILABLE", commit, decision_time, record_lifecycle)
+    return _reject(appointment, "DOCK_UNAVAILABLE", commit, decision_time, record_lifecycle, record_operational_exception=record_operational_exception)
 
 
 def _reject(
@@ -209,12 +219,15 @@ def _reject(
     decision_time=None,
     record_lifecycle=True,
     update_status=True,
+    record_operational_exception=True,
 ):
     previous_status = appointment.status
     if update_status:
         appointment.status = "REJECTED"
     db.session.add(SchedulingDecision(appointment=appointment, decision="REJECTED", reason_code=reason,
                                       details={"explanation": explain(reason)}, created_at=decision_time))
+    if record_operational_exception:
+        record_scheduling_exception(appointment, reason)
     if update_status and record_lifecycle:
         db.session.add(LifecycleEvent(
             appointment_id=appointment.id,

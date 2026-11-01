@@ -290,7 +290,7 @@ def _generate(seed, mode, progress, database_url=None):
             appointment = Appointment(reference=f"APPT-2026-{i+1:06d}", shipment_id=shipment.id, facility_id=facility.id,
                                       requested_start=requested, requested_end=requested + timedelta(hours=2), duration_minutes=requirement.service_minutes,
                                       created_at=requested - timedelta(days=1))
-            db.session.add(appointment); db.session.flush(); schedule_appointment(appointment, commit=False, decision_time=appointment.created_at, record_lifecycle=False)
+            db.session.add(appointment); db.session.flush(); schedule_appointment(appointment, commit=False, decision_time=appointment.created_at, record_lifecycle=False, record_operational_exception=False)
             actual_arrival = requested - timedelta(minutes=10)
             if appointment.status == "SCHEDULED":
                 db.session.add(AppointmentTimeline(appointment_id=appointment.id, actual_arrival_at=actual_arrival,

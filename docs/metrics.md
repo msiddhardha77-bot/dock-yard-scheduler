@@ -13,6 +13,7 @@ events.
 | Dock utilization | union of actual dock-arrival-to-service-end time / active dock open-hours capacity × 100 | whole UTC calendar days containing observed dock activity, clipped to each facility's local operating hours |
 | Inbound/outbound count | appointment count grouped by linked shipment direction | selected database population |
 | Completed count | appointments in `COMPLETED` or `DEPARTED` | selected database population |
+| Throughput | completed/departed appointments by actual terminal timeline timestamp | optional UTC window; daily and facility buckets available |
 | No-show rate | `NO_SHOW` appointments / all appointments | selected database population |
 | Exception rate | all exception rows / all appointments | selected database population |
 
@@ -49,6 +50,22 @@ appointments, 34 currently scheduled, 39 projected appointments, 2,951
 projected service minutes, 75.67 average projected minutes, and all 39
 projected completions within their requested windows. The simulation was
 repeated with the same seed and did not change database counts.
+
+`throughput_metrics(start_at, end_at, facility_id)` counts only appointments
+with a terminal status and actual terminal timestamp: `service_end_at` for
+`COMPLETED` and `departure_at` for `DEPARTED`. The optional window is half-open
+(`start_at <= terminal < end_at`); daily buckets are UTC dates and facility
+buckets use the appointment facility ID. Missing terminal timestamps are
+excluded rather than fabricated. The current operational snapshot has one
+departed appointment and therefore throughput count 1.
+
+Scheduling failures that become operational exception rows use these causes:
+`PEAK_CONGESTION` for dock/yard scarcity, `INCOMPATIBLE_LOAD` for dock,
+vehicle, or handling incompatibility, `LABOR_UNAVAILABLE` for labor capacity,
+and `INVALID_SCHEDULING_DECISION` for invalid scheduling state. Repeated
+attempts for the same appointment and cause are deduplicated. Generator runs
+explicitly suppress these operational rows so synthetic ground-truth labels
+remain separate from operational input data.
 
 ## Current operational snapshot
 

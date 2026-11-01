@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func
 
@@ -55,6 +56,7 @@ def dashboard_metrics():
     ).count()
 
     utilization = dock_utilization_metrics()
+    throughput = throughput_metrics()
 
     return {
         "total": total,
@@ -74,6 +76,7 @@ def dashboard_metrics():
             Appointment.shipment
         ).filter_by(direction="OUTBOUND").count(),
         "dock_utilization": utilization["dock_utilization"] or 0,
+        "throughput_count": throughput["throughput_count"],
     }
 
 
@@ -170,21 +173,32 @@ def dock_utilization_metrics(start_at=None, end_at=None):
     # Capacity is based on every active dock, not only docks that happened to
     # receive a reservation in the numerator.
     docks = {dock.id: dock for dock in Dock.query.filter_by(active=True).all()}
+    docks_by_facility = defaultdict(list)
+    for dock in docks.values():
+        docks_by_facility[dock.facility_id].append(dock)
     available = 0.0
-    day = start_at.date()
-    while day < end_at.date() or (
-        day == end_at.date()
-        and end_at.time() != time(0)
-    ):
-        for dock in docks.values():
-            facility = dock.facility
-            open_at = datetime.combine(day, facility.operating_start, tzinfo=timezone.utc)
-            close_at = datetime.combine(day, facility.operating_end, tzinfo=timezone.utc)
-            available += max(
-                0.0,
-                (min(close_at, end_at) - max(open_at, start_at)).total_seconds() / 60,
-            )
-        day += timedelta(days=1)
+    for facility_id, facility_docks in docks_by_facility.items():
+        facility = facility_docks[0].facility
+        facility_timezone = ZoneInfo(facility.timezone or "UTC")
+        local_start = start_at.astimezone(facility_timezone).date()
+        local_end = (end_at - timedelta(microseconds=1)).astimezone(
+            facility_timezone
+        ).date()
+        day = local_start
+        while day <= local_end:
+            if facility.operating_end > facility.operating_start:
+                open_at = datetime.combine(
+                    day, facility.operating_start, tzinfo=facility_timezone
+                ).astimezone(timezone.utc)
+                close_at = datetime.combine(
+                    day, facility.operating_end, tzinfo=facility_timezone
+                ).astimezone(timezone.utc)
+                available += len(facility_docks) * max(
+                    0.0,
+                    (min(close_at, end_at) - max(open_at, start_at)).total_seconds()
+                    / 60,
+                )
+            day += timedelta(days=1)
 
     return {
         "occupied_dock_minutes": round(occupied, 2),
@@ -192,6 +206,67 @@ def dock_utilization_metrics(start_at=None, end_at=None):
         "dock_utilization": round(occupied / available * 100, 2) if available else None,
         "period_start": start_at,
         "period_end": end_at,
+    }
+
+
+def throughput_metrics(start_at=None, end_at=None, facility_id=None):
+    """Count completed/departed appointments by actual terminal timestamps.
+
+    `COMPLETED` rows use `service_end_at`; `DEPARTED` rows use
+    `departure_at`.  The optional window is half-open: ``[start_at, end_at)``.
+    Daily buckets are UTC dates and facility buckets use the appointment's
+    facility ID. Rows without the required terminal timestamp are excluded.
+    """
+    rows = (
+        Appointment.query
+        .join(AppointmentTimeline, AppointmentTimeline.appointment_id == Appointment.id)
+        .with_entities(
+            Appointment.status,
+            Appointment.facility_id,
+            AppointmentTimeline.service_end_at,
+            AppointmentTimeline.departure_at,
+        )
+        .filter(Appointment.status.in_(["COMPLETED", "DEPARTED"]))
+        .all()
+    )
+
+    start = _utc(start_at) if start_at is not None else None
+    end = _utc(end_at) if end_at is not None else None
+    terminal_rows = []
+    for row in rows:
+        terminal = row.departure_at if row.status == "DEPARTED" else row.service_end_at
+        if terminal is None:
+            continue
+        terminal = _utc(terminal)
+        if start is not None and terminal < start:
+            continue
+        if end is not None and terminal >= end:
+            continue
+        terminal_rows.append((row.status, row.facility_id, terminal))
+
+    if start is None and terminal_rows:
+        start = min(row[2] for row in terminal_rows).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+    if end is None and terminal_rows:
+        end = max(row[2] for row in terminal_rows).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ) + timedelta(days=1)
+
+    daily = defaultdict(int)
+    facilities = defaultdict(int)
+    for _, row_facility_id, terminal in terminal_rows:
+        daily[terminal.date().isoformat()] += 1
+        facilities[str(row_facility_id)] += 1
+
+    return {
+        "throughput_count": len(terminal_rows),
+        "completed_count": sum(row[0] == "COMPLETED" for row in terminal_rows),
+        "departed_count": sum(row[0] == "DEPARTED" for row in terminal_rows),
+        "daily": dict(sorted(daily.items())),
+        "by_facility": dict(sorted(facilities.items())),
+        "period_start": start,
+        "period_end": end,
     }
 
 
